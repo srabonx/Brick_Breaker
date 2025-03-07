@@ -4,6 +4,8 @@
 #include "GameManager.h"
 #include "Input.h"
 
+#include <HelperMethods.h>
+
 void Ball::Init()
 {
 	SetParticleEmitter();
@@ -11,7 +13,7 @@ void Ball::Init()
 
 void Ball::onLoadResource()
 {
-	BINDU::Texture bodyTex(RelativeResourcePath("Resource/images/balls.png").c_str());
+	BINDU::Texture bodyTex(HM::RelativeResourcePath(GameManager::RC.BallTexture).c_str());
 
 	m_sprite.SetTexture(bodyTex);
 	m_sprite.setPosition(this->m_position);
@@ -24,7 +26,7 @@ void Ball::onLoadResource()
 	m_animator.setCurrentRow(0);
 	m_animator.setCurrentFrame(1);
 
-	BINDU::Texture tex(RelativeResourcePath("Resource/images/smoke.png").c_str());
+	BINDU::Texture tex(HM::RelativeResourcePath(GameManager::RC.BallParticleTexture).c_str());
 	m_bodyEmitter->SetTexture(tex);
 	m_collisionEmitter->SetTexture(tex);
 
@@ -104,10 +106,13 @@ void Ball::Draw(BINDU::Graphics* graphics, const D2D1_MATRIX_3X2_F& cameraMatrix
 
 void Ball::ProcessInput()
 {
+#if defined(DEBUG) || defined(_DEBUG)
 	if (BINDU::Input::isKeyPressed(BND_V))
 		m_rageMode = true;
+
 	if (BINDU::Input::isKeyPressed(BND_L))
 		m_bodyEmitter->ChangeParticleColor({ 0.f,0.f,255.f,50.f });
+#endif
 }
 
 void Ball::Reset()

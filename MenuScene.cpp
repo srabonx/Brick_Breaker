@@ -1,5 +1,7 @@
 #include "MenuScene.h"
 
+#include <HelperMethods.h>
+
 #include "CollisionHandler.h"
 #include "GameManager.h"
 #include "Constants.h"
@@ -23,9 +25,11 @@ void MenuScene::onLoadResource()
 	bgLayer->setActive(true);
 	m_bgLayer = bgLayer.get();
 
-	m_buttonTexture.LoadFromFile(RelativeResourcePath("Resource/images/buttons.png").c_str());
-	m_selectorTexture.LoadFromFile(RelativeResourcePath("Resource/images/selector2.png").c_str());
-	m_bgTexture.LoadFromFile(RelativeResourcePath("Resource/images/titlename.png").c_str());
+
+
+	m_buttonTexture.LoadFromFile(HM::RelativeResourcePath(GameManager::RC.ButtonTexture).c_str());
+	m_selectorTexture.LoadFromFile(HM::RelativeResourcePath(GameManager::RC.SelectorTexture).c_str());
+	m_bgTexture.LoadFromFile(HM::RelativeResourcePath(GameManager::RC.TitleTexture).c_str());
 
 	std::unique_ptr<BINDU::Sprite> bgImage = std::make_unique<BINDU::Sprite>();
 	bgImage->SetTexture(m_bgTexture);
@@ -36,7 +40,7 @@ void MenuScene::onLoadResource()
 	bgImage->setScale(1.f, 1.f);
 	m_bgImage = bgImage.get();
 
-	BINDU::Texture tex(RelativeResourcePath("Resource/images/starfield.png").c_str());
+	BINDU::Texture tex(HM::RelativeResourcePath(GameManager::RC.MenuBgTexture).c_str());
 	std::unique_ptr<BINDU::Sprite> starBgImage = std::make_unique<BINDU::Sprite>();
 	starBgImage->SetTexture(tex);
 	starBgImage->setPosition(-200, -200);
@@ -209,12 +213,12 @@ void MenuScene::onLoadResource()
 	AddLayer(std::move(fgLayer), "fglayer");
 	AddLayer(std::move(optionLayer), "optionlayer");
 
-	m_font.LoadBitmapFont(RelativeResourcePath("Resource/images/unispace-bitmapfont.png").c_str());
-	m_font.LoadWidthData(RelativeResourcePath("Resource/images/unispace-fontwidth.dat").c_str());
+	m_font.LoadBitmapFont(HM::RelativeResourcePath(GameManager::RC.MenuFontFile).c_str());
+	m_font.LoadWidthData(HM::RelativeResourcePath(GameManager::RC.MenuFontWidthFile).c_str());
 	m_font.setCharSize(15, 20);
 	
-	m_movingFont.LoadBitmapFont(RelativeResourcePath("Resource/images/unispace-bitmapfont.png").c_str());
-	m_movingFont.LoadWidthData(RelativeResourcePath("Resource/images/unispace-fontwidth.dat").c_str());
+	m_movingFont.LoadBitmapFont(HM::RelativeResourcePath(GameManager::RC.MenuMovingFontFile).c_str());
+	m_movingFont.LoadWidthData(HM::RelativeResourcePath(GameManager::RC.MenuMovingFontWidthFile).c_str());
 	m_movingFont.setCharSize(15, 20);
 
 	m_fontPos.y = 700.f;
@@ -477,7 +481,7 @@ void MenuScene::SetParticleEmitter()
 
 	std::unique_ptr<BINDU::ParticleEmitter> emitter = std::make_unique<BINDU::ParticleEmitter>();
 
-	BINDU::Texture tex(RelativeResourcePath("Resource/images/star_03.png").c_str());
+	BINDU::Texture tex(HM::RelativeResourcePath(GameManager::RC.MenuParticleTexture).c_str());
 
 	emitter->Init(props);
 	emitter->SetTexture(tex);
@@ -506,7 +510,7 @@ void MenuScene::UpdateMovingFont(float dt)
 {
 	m_fontPos.x -= 100.f * dt;
 
-	const std::string str1 = "BrickBreaker v1.0.0 - Made using : ";
+	const std::string str1 = "BrickBreaker v1.0.2 - Made using : ";
 	const std::string str2 = "Artworks By: ";
 	const std::string str3 = "Aitneony";
 

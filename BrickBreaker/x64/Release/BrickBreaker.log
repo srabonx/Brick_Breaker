@@ -1,0 +1,12 @@
+﻿  Ball.cpp
+  GameManager.cpp
+  Main.cpp
+  MainScene.cpp
+  MenuScene.cpp
+  Paddle.cpp
+     Creating library C:\Users\letsd\visual studio workspace\GameProjects\BrickBreaker\x64\Release\BrickBreaker.lib and object C:\Users\letsd\visual studio workspace\GameProjects\BrickBreaker\x64\Release\BrickBreaker.exp
+  Generating code
+  Previous IPDB not found, fall back to full compilation.
+  All 4022 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  BrickBreaker.vcxproj -> C:\Users\letsd\visual studio workspace\GameProjects\BrickBreaker\x64\Release\BrickBreaker.exe

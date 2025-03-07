@@ -7,6 +7,8 @@
 #include "Input.h"
 #include "Random.h"
 
+#include <HelperMethods.h>
+
 
 void MainScene::Init(const BINDU::Bnd_Size& windSize)
 {
@@ -21,19 +23,19 @@ void MainScene::Init(const BINDU::Bnd_Size& windSize)
 void MainScene::onLoadResource()
 {
 
-	GameManager::getSoundSystem()->Load("ballsound", RelativeResourcePath("Resource/sounds/pong.wav").c_str());
-	GameManager::getSoundSystem()->Load("lasersound", RelativeResourcePath("Resource/sounds/laser7.mp3").c_str());
-	GameManager::getSoundSystem()->Load("levelcomplete", RelativeResourcePath("Resource/sounds/level-complete.ogg").c_str());
-	GameManager::getSoundSystem()->Load("lifelost", RelativeResourcePath("Resource/sounds/life-lost.ogg").c_str());
-	GameManager::getSoundSystem()->Load("powerup", RelativeResourcePath("Resource/sounds/power-up.ogg").c_str());
-	GameManager::getSoundSystem()->Load("brickfall", RelativeResourcePath("Resource/sounds/highDown.mp3").c_str());
+	GameManager::getSoundSystem()->Load("ballsound", HM::RelativeResourcePath(GameManager::RC.BallSound).c_str());
+	GameManager::getSoundSystem()->Load("lasersound", HM::RelativeResourcePath(GameManager::RC.LaserSound).c_str());
+	GameManager::getSoundSystem()->Load("levelcomplete", HM::RelativeResourcePath(GameManager::RC.LevelCompleteSound).c_str());
+	GameManager::getSoundSystem()->Load("lifelost", HM::RelativeResourcePath(GameManager::RC.LifeLostSound).c_str());
+	GameManager::getSoundSystem()->Load("powerup", HM::RelativeResourcePath(GameManager::RC.PowerUpSound).c_str());
+	GameManager::getSoundSystem()->Load("brickfall", HM::RelativeResourcePath(GameManager::RC.BrickFallSound).c_str());
 
 
-	BINDU::Texture bgTexture(RelativeResourcePath("Resource/images/background-pastel.png").c_str());
-	BINDU::Texture boundaryTexture(RelativeResourcePath("Resource/images/borders.png").c_str());
+	BINDU::Texture bgTexture(HM::RelativeResourcePath(GameManager::RC.GameBgTexture).c_str());
+	BINDU::Texture boundaryTexture(HM::RelativeResourcePath(GameManager::RC.BoundaryTexture).c_str());
 
-	m_powerUpTex.LoadFromFile(RelativeResourcePath("Resource/images/power-ups.png").c_str());
-	m_healthTex.LoadFromFile(RelativeResourcePath("Resource/images/hud-life.png").c_str());
+	m_powerUpTex.LoadFromFile(HM::RelativeResourcePath(GameManager::RC.PowerUpTexture).c_str());
+	m_healthTex.LoadFromFile(HM::RelativeResourcePath(GameManager::RC.HealthTexture).c_str());
 
 	m_powerUpAnimator.setTotalColumn(4);
 	m_powerUpAnimator.setTotalFrame(8);
@@ -53,7 +55,7 @@ void MainScene::onLoadResource()
 	bndryImg->setActive(true);
 	m_boundaryImg = bndryImg.get();
 
-	BINDU::Texture bndryShadowTex(RelativeResourcePath("Resource/images/border-shadow.png").c_str());
+	BINDU::Texture bndryShadowTex(HM::RelativeResourcePath(GameManager::RC.BoundaryShadowTexture).c_str());
 
 	std::unique_ptr<BINDU::Sprite> bndryShadow = std::make_unique<BINDU::Sprite>();
 	bndryShadow->SetTexture(bndryShadowTex);
@@ -95,12 +97,12 @@ void MainScene::onLoadResource()
 	AddLayer(std::move(bgLayer), "bglayer");
 
 
-	m_shadowTexture.LoadFromFile(RelativeResourcePath("Resource/images/brick-dropshadow.png").c_str());
+	m_shadowTexture.LoadFromFile(HM::RelativeResourcePath(GameManager::RC.BrickShadowTexture).c_str());
 
 
 	SetParticleEmitter();
 
-	m_mapParser.setResourcePath(RelativeResourcePath("Resource/").c_str());
+	m_mapParser.setResourcePath(HM::RelativeResourcePath("/Resource/").c_str());
 
 
 	//int lvlCounter = 1;
@@ -130,7 +132,7 @@ void MainScene::onLoadResource()
 
 	AddLayer(std::move(shadowLayer), "shadowlayer");
 
-	m_mapParser.Load(RelativeResourcePath("Resource/levels/level1.xml").c_str(), *this);
+	m_mapParser.Load(HM::RelativeResourcePath(GameManager::RC.LevelFile).c_str(), *this);
 
 	m_switchLevel = true;
 
@@ -163,8 +165,8 @@ void MainScene::onLoadResource()
 	AddLayer(std::move(fgLayer), "fglayer");
 
 
-	m_font.LoadBitmapFont(RelativeResourcePath("Resource/images/unispace-bitmapfont.png").c_str());
-	m_font.LoadWidthData(RelativeResourcePath("Resource/images/unispace-fontwidth.dat").c_str());
+	m_font.LoadBitmapFont(HM::RelativeResourcePath(GameManager::RC.GameFontFile).c_str());
+	m_font.LoadWidthData(HM::RelativeResourcePath(GameManager::RC.GameFontWidthFile).c_str());
 	m_font.setCharSize(20, 20);
 
 	for(auto& m:m_layers)
@@ -180,7 +182,7 @@ void MainScene::onLoadResource()
 
 	SetUpHealth();
 
-	BINDU::Texture transparentTex(RelativeResourcePath("Resource/images/transparent-sheet.png").c_str());
+	BINDU::Texture transparentTex(HM::RelativeResourcePath(GameManager::RC.TransparentSheetTexture).c_str());
 	std::unique_ptr<BINDU::Sprite>  transparentSprite = std::make_unique<BINDU::Sprite>();
 	transparentSprite->setPosition(m_boundaryImg->getPosition().x + 3 * m_boundaryImgOffset, m_boundaryImg->getPosition().y + 3 * m_boundaryImgOffset);
 	transparentSprite->setSize(m_boundaryImg->getPosition().x + m_boundaryImg->getWidth() - 7 * m_boundaryImgOffset, m_boundaryImg->getPosition().y + m_boundaryImg->getHeight() - 2 * m_boundaryImgOffset);
@@ -201,6 +203,9 @@ void MainScene::onLoadResource()
 
 	Scene::onLoadResource();
 
+
+	// Set the high score
+	m_highScore = GameManager::GS.HighScore;
 }
 
 
@@ -499,12 +504,13 @@ void MainScene::Update(float dt)
 		UpdatePauseLayer();
 	}
 
-
+#if defined(DEBUG) || defined(_DEBUG)
 	m_font.PrintText(0, 0, "REAL: " + std::to_string(g_engine->getRealFrameRate() ));
 	m_font.PrintText(0, 24, "CORE: " + std::to_string(g_engine->getCoreFrameRate()));
 
 	m_font.PrintText(120, 0, "UPDATE TIME: " + std::to_string(g_engine->getUpdateTime()) + " ms");
 	m_font.PrintText(120, 24, "RENDER TIME: " + std::to_string(g_engine->getRenderTime()) + " ms");
+#endif
 
 
 	m_font.PrintText(625, 260, "HIGH SCORE");
@@ -537,22 +543,23 @@ void MainScene::Draw(BINDU::Graphics* graphics, const D2D1_MATRIX_3X2_F& cameraM
 	}
 
 	// Drawing the grid
-	//graphics->getRenderTarget()->SetTransform(D2D1::IdentityMatrix());
-	//for (int y = static_cast<int>(m_boundaryImg->getPosition().y + (3 * m_boundaryImgOffset)); y <= m_boundaryImg->getSize().height ; y += TILE_SIZE.y)
-	//{
-	//	for (int x = static_cast<int>(m_boundaryImg->getPosition().x + (3 * m_boundaryImgOffset)); x <= m_boundaryImg->getSize().width - (3 * m_boundaryImgOffset); x += TILE_SIZE.x)
-	//	{
-	//			
-	//			graphics->getSolidColorBrush()->SetColor(D2D1::ColorF(D2D1::ColorF::DarkSlateGray));
-	//			graphics->getRenderTarget()->DrawRectangle({ static_cast<float>(x),static_cast<float>(y),static_cast<float>(x) + static_cast<float>(TILE_SIZE.x),static_cast<float>(y) + static_cast<float>(TILE_SIZE.y) }, graphics->getSolidColorBrush());
-	//	}
+	if (m_drawGrid)
+	{
+		graphics->getRenderTarget()->SetTransform(D2D1::IdentityMatrix());
+		for (int y = static_cast<int>(m_boundaryImg->getPosition().y + (3 * m_boundaryImgOffset)); y <= m_boundaryImg->getSize().height; y += TILE_SIZE.y)
+		{
+			for (int x = static_cast<int>(m_boundaryImg->getPosition().x + (3 * m_boundaryImgOffset)); x <= m_boundaryImg->getSize().width - (3 * m_boundaryImgOffset); x += TILE_SIZE.x)
+			{
 
-	//}
+				graphics->getSolidColorBrush()->SetColor(D2D1::ColorF(D2D1::ColorF::DarkSlateGray));
+				graphics->getRenderTarget()->DrawRectangle({ static_cast<float>(x),static_cast<float>(y),static_cast<float>(x) + static_cast<float>(TILE_SIZE.x),static_cast<float>(y) + static_cast<float>(TILE_SIZE.y) }, graphics->getSolidColorBrush());
+			}
+
+		}
+	}
 
 
 	m_font.Draw(graphics, D2D1::IdentityMatrix());
-
-	
 
 }
 
@@ -575,6 +582,7 @@ void MainScene::ProcessInput()
 		m_currentState = State::PAUSE;
 	}
 
+#if defined(DEBUG) || defined(_DEBUG)
 	if(BINDU::Input::isKeyPressed(BND_Y))
 	{
 		SwitchLevel();
@@ -583,6 +591,20 @@ void MainScene::ProcessInput()
 			m_currentLevel = 0;
 
 	}
+
+
+	if (BINDU::Input::isKeyPressed(BND_U))
+		m_transparentLayer->setActive(true);
+
+	if (BINDU::Input::isKeyPressed(BND_R))
+		ResetGame();
+
+	if (BINDU::Input::isKeyPressed(BND_G))
+		m_drawGrid = !m_drawGrid;
+
+	m_mouseCell = { (BINDU::Input::getMousePosition().x),(BINDU::Input::getMousePosition().y) };
+
+#endif
 
 	if(m_currentState == State::READY_PHASE && BINDU::Input::isKeyPressed(BND_SPACE))
 	{
@@ -596,11 +618,6 @@ void MainScene::ProcessInput()
 
 	}
 
-	if (BINDU::Input::isKeyPressed(BND_U))
-		m_transparentLayer->setActive(true);
-
-
-	m_mouseCell = { (BINDU::Input::getMousePosition().x),(BINDU::Input::getMousePosition().y) };
 
 	for (auto& ball : m_balls)
 	{
@@ -612,15 +629,17 @@ void MainScene::ProcessInput()
 				LaunchBall(ball);
 			}
 
+#if defined(DEBUG) || defined(_DEBUG)
+
 			if (BINDU::Input::isMouseButtonHold(BND_BTN_LEFT))
 			{
 				ball->setPosition(m_mouseCell);
 			}
+
+#endif
 		}
 	}
 
-	if (BINDU::Input::isKeyPressed(BND_R))
-		ResetGame();
 
 
 	if(m_currentState == State::PAUSE)
@@ -777,6 +796,7 @@ void MainScene::SwitchLevel()
 			const size_t pos = lvlName.find_last_of('l');
 			lvlName = lvlName.substr(pos + 1, lvlName.size() - pos);
 			const int lvl = static_cast<int>(std::strtol(lvlName.c_str(), nullptr, 0));
+
 			if (lvl > m_currentLevel)
 			{
 				m_currentLevel = lvl;
@@ -832,6 +852,10 @@ void MainScene::SwitchLevel()
 	}
 
 	m_currentState = State::TRANSITION;
+
+	// Save the game
+	GameManager::GS.HighScore = m_highScore;
+	GameManager::SaveGame();
 }
 
 void MainScene::GameOver()
@@ -940,7 +964,7 @@ void MainScene::SetParticleEmitter()
 
 	std::unique_ptr<BINDU::ParticleEmitter> emitter = std::make_unique<BINDU::ParticleEmitter>();
 
-	BINDU::Texture tex(RelativeResourcePath("Resource/images/particle16.png").c_str());
+	BINDU::Texture tex(HM::RelativeResourcePath(GameManager::RC.GameParticleTexture).c_str());
 
 	emitter->Init(props);
 	emitter->SetTexture(tex);
@@ -1288,8 +1312,8 @@ void MainScene::UpdateHealth()
 
 void MainScene::SetUpPauseLayer()
 {
-	BINDU::Texture btnTex(RelativeResourcePath("Resource/images/buttons.png").c_str());
-	BINDU::Texture slctTex(RelativeResourcePath("Resource/images/selector2.png").c_str());
+	BINDU::Texture btnTex(HM::RelativeResourcePath(GameManager::RC.ButtonTexture).c_str());
+	BINDU::Texture slctTex(HM::RelativeResourcePath(GameManager::RC.SelectorTexture).c_str());
 
 	std::unique_ptr<BINDU::Sprite> resumeButton = std::make_unique<BINDU::Sprite>();
 	resumeButton->SetTexture(btnTex);
@@ -1530,7 +1554,7 @@ void MainScene::ResetShadows() const
 }
 
 
-void MainScene::LaunchBall(Ball* ball)
+void MainScene::LaunchBall(Ball* ball) const
 {
 		ball->setStickyBall(false);
 

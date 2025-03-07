@@ -95,13 +95,15 @@ private:
 	bool								m_pauseMode{ false };
 	bool								m_transitionPhase{ false };
 
+	bool								m_drawGrid{ false };
+
 	State								m_currentState = State::TRANSITION;
 	State								m_prevState;
 
 	int									m_readyPhaseTimer{ 180 };
 
 	int									m_score{ 0 };
-	int									m_highScore{ 0 };
+	size_t								m_highScore{ 0 };
 	int									m_currentBricks{};
 
 	bool								m_launchBall{ false };
@@ -125,7 +127,7 @@ private:
 	void    UpdateReadyPhase();
 	void	SetParticleEmitter();
 	void    UpdatePowerUps(const float dt);
-	void	LaunchBall(Ball* ball);
+	void	LaunchBall(Ball* ball) const;
 	void    UpdateBullet(const float dt);
 	void    UpdateBrick(std::unique_ptr<BINDU::Tile>& tile, const float dt);
 	void	DropBrick(BINDU::Tile* tile, const float dt);

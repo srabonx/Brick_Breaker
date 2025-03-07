@@ -1,5 +1,7 @@
 #include "Paddle.h"
 
+#include <HelperMethods.h>
+
 #include "Ball.h"
 #include "Input.h"
 #include "Constants.h"
@@ -14,12 +16,12 @@ void Paddle::Init()
 
 void Paddle::onLoadResource()
 {
-	m_bodyTexture.LoadFromFile(RelativeResourcePath("Resource/images/paddles-pastel.png").c_str());
+	m_bodyTexture.LoadFromFile(HM::RelativeResourcePath(GameManager::RC.PaddleTexture).c_str());
 	m_bodySprite.SetTexture(m_bodyTexture);
 	m_bodySprite.setPosition(m_position);
 	m_bodySprite.setSize(m_size);
 
-	m_bulletTex.LoadFromFile(RelativeResourcePath("Resource/images/laserbeam.png").c_str());
+	m_bulletTex.LoadFromFile(HM::RelativeResourcePath(GameManager::RC.LaserTexture).c_str());
 
 	m_animator.setFrameSize(48.f, 15.5f);
 	m_animator.setTotalColumn(1);
@@ -28,7 +30,7 @@ void Paddle::onLoadResource()
 
 	m_velocity = { 200.f,200.f };
 
-	BINDU::Texture tex(RelativeResourcePath("Resource/images/muzzle_04.png").c_str());
+	BINDU::Texture tex(HM::RelativeResourcePath(GameManager::RC.MuzzleTexture).c_str());
 	m_muzzleFlashEmitter->SetTexture(tex);
 
 	SceneObject::onLoadResource();
@@ -114,17 +116,29 @@ void Paddle::Draw(BINDU::Graphics* graphics, const D2D1_MATRIX_3X2_F& cameraMatr
 
 void Paddle::ProcessInput()
 {
+
+#if defined(DEBUG) || defined(_DEBUG)
 	if (BINDU::Input::isKeyPressed(BND_M))
 		m_paddleType = PaddleType::MAGNETIC;
+
+	if (BINDU::Input::isKeyPressed(BND_N))
+	{
+		if (GameManager::getSfx())
+			GameManager::getSoundSystem()->Play("lasersound", false, 1.0f);
+
+		m_muzzleFlashEmitter->setPosition((getRectCollider().w * 0.5f) - 25.f, -50.f);
+		m_muzzleFlashEmitter->Generate();
+	}
+#endif
 
 	m_moveLeft = false;
 	m_moveRight = false;
 	m_moveDown = false;
 	m_moveUp = false;
 
-	if (BINDU::Input::isKeyHold(BND_A))
+	if (BINDU::Input::isKeyHold(BND_A) || BINDU::Input::isKeyHold(BND_LEFT))
 		m_moveLeft = true;
-	if (BINDU::Input::isKeyHold(BND_D))
+	if (BINDU::Input::isKeyHold(BND_D) || BINDU::Input::isKeyHold(BND_RIGHT))
 		m_moveRight = true;
 
 	if (m_paddleType == PaddleType::LASER && BINDU::Input::isKeyPressed(BND_SPACE) && m_bullets.size() < 2)
@@ -133,16 +147,8 @@ void Paddle::ProcessInput()
 			GameManager::getSoundSystem()->Play("lasersound", false, 1.0f);
 
 		FireBullet();
+
 		m_muzzleFlashEmitter->setPosition((getRectCollider().w * 0.5f) - 25.f, -50.f);
-		m_muzzleFlashEmitter->Generate();
-	}
-
-	if (BINDU::Input::isKeyPressed(BND_N))
-	{
-		if (GameManager::getSfx())
-			GameManager::getSoundSystem()->Play("lasersound", false, 1.0f);
-
-		m_muzzleFlashEmitter->setPosition((getRectCollider().w * 0.5f ) - 25.f, -50.f);
 		m_muzzleFlashEmitter->Generate();
 	}
 
